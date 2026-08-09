@@ -1,6 +1,6 @@
 {
   "name": "@knurdz/lava-form-builder",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Google Forms-like React form builder, renderer, submissions admin, and analytics with a database-agnostic store adapter",
   "author": "RKK Vishva Kumar <Knurdz>",
   "license": "MIT",
