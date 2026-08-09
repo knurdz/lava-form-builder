@@ -131,4 +131,4 @@ portFile(
   "FormAnalyticsCharts.tsx",
 );
 
-console.log("Port complete — manual fixes may still be required.");
+console.log("Port complete. Manual fixes may still be required.");

@@ -1,11 +1,16 @@
 <p align="center">
-  <img src="./assets/lava-form-builder-icon.png" alt="lava-form-builder icon" width="128" height="128" />
+  <img
+    src="https://raw.githubusercontent.com/knurdz/lava-form-builder/main/assets/lava-form-builder-icon.png"
+    alt="lava-form-builder icon"
+    width="128"
+    height="128"
+  />
 </p>
 
 <h1 align="center">lava-form-builder</h1>
 
 <p align="center">
-  <strong>Google Forms–like React UI — builder, renderer, submissions, and analytics — powered by your own database.</strong>
+  <strong>Google Forms-like React UI: builder, renderer, submissions, and analytics, powered by your own database.</strong>
 </p>
 
 <p align="center">
@@ -22,7 +27,7 @@
 
 ## Overview
 
-**lava-form-builder** extracts the Deploy Sprint–style registration experience into a reusable library:
+**lava-form-builder** extracts the Deploy Sprint-style registration experience into a reusable library:
 
 | Surface | Export | What it does |
 |--------|--------|----------------|
@@ -31,7 +36,7 @@
 | Responses | `FormSubmissions` | Filter, paginate, optimistic detail drawer |
 | Insights | `FormAnalyticsCharts` | Trends, breakdowns, summary stats |
 
-Persistence is **your job** — implement [`LavaFormStore`](src/store.ts) against Postgres, Appwrite, Firebase, or anything else. The library ships [`createMemoryStore()`](src/memory-store.ts) for demos and tests.
+Persistence is **your job**: implement [`LavaFormStore`](src/store.ts) against Postgres, Appwrite, Firebase, or anything else. The library ships [`createMemoryStore()`](src/memory-store.ts) for demos and tests.
 
 ---
 
@@ -150,7 +155,7 @@ Wrap surfaces in **`.lfb-root`** and override CSS variables:
 | `--lfb-muted` | Secondary text |
 | `--lfb-accent` | Focus / links |
 
-Internal Tailwind utilities are compiled into **`styles.css`** — hosts do **not** need Tailwind installed.
+Internal Tailwind utilities are compiled into **`styles.css`**; hosts do **not** need Tailwind installed.
 
 The submission drawer creates **`#lava-form-builder-drawer-portal`** on `document.body` when needed (full-viewport overlay).
 
@@ -160,7 +165,9 @@ The submission drawer creates **`#lava-form-builder-drawer-portal`** on `documen
 
 1. Bump **`version`** in `package.json` on `main`.
 2. **Draft Release** workflow opens/updates a draft GitHub Release.
-3. Publish the release → **Publish Package** ships to [npm](https://www.npmjs.com/package/@knurdz/lava-form-builder) (OIDC) and GitHub Packages.
+3. Publish the release → **Publish Package** ships to [npm](https://www.npmjs.com/package/@knurdz/lava-form-builder) (OIDC, public) and [GitHub Packages](https://github.com/orgs/knurdz/packages) (`npm publish --access public`).
+
+If a GitHub Packages version was already published as **private**, open the package on GitHub → **Package settings** → **Change visibility** → **Public** (one-time for that package).
 
 Repo: **[github.com/knurdz/lava-form-builder](https://github.com/knurdz/lava-form-builder)**
 

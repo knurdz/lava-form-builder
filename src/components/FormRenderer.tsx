@@ -611,7 +611,7 @@ function TeamSizeSelector({
           <p className="mt-2 text-[0.8125rem] text-rose-300">{fieldErrors.memberCount}</p>
         )}
         <p className="mt-2 text-[0.8125rem] leading-relaxed text-zinc-400">
-          Select {form.teamMinMembers}–{form.teamMaxMembers} participants including the team leader.
+          Select {form.teamMinMembers} to {form.teamMaxMembers} participants including the team leader.
         </p>
       </div>
     </div>
