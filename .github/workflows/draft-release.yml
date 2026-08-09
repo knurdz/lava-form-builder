@@ -1,0 +1,163 @@
+name: Draft Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: draft-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  draft-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Read package metadata
+        id: package
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+
+          const packageJsonPath = path.join(process.cwd(), "package.json");
+          const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+
+          if (!pkg.version) {
+            throw new Error("package.json is missing a version field");
+          }
+
+          const output = [
+            `name=${pkg.name ?? "package"}`,
+            `version=${pkg.version}`,
+            `tag=v${pkg.version}`,
+            `title=Version ${pkg.version}`,
+          ].join("\n");
+
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `${output}\n`);
+          NODE
+
+      - name: Find previous version tag
+        id: previous-tag
+        env:
+          CURRENT_TAG: ${{ steps.package.outputs.tag }}
+        run: |
+          previous_tag="$(git tag --sort=-v:refname | grep -Fxv "$CURRENT_TAG" | head -n 1 || true)"
+          echo "tag=$previous_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes
+        env:
+          VERSION: ${{ steps.package.outputs.version }}
+          PREVIOUS_TAG: ${{ steps.previous-tag.outputs.tag }}
+        run: |
+          {
+            echo "Version ${VERSION}"
+            echo
+            echo "Changes made"
+            echo
+          } > release-notes.md
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            git log "${PREVIOUS_TAG}..HEAD" --no-merges --pretty=format:'- %s' >> release-notes.md
+          else
+            git log --no-merges --pretty=format:'- %s' >> release-notes.md
+          fi
+
+          if [ ! -s release-notes.md ] || [ "$(tail -n +5 release-notes.md | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')" = "0" ]; then
+            {
+              echo
+              echo "- Initial release"
+            } >> release-notes.md
+          fi
+
+      - name: Check existing release
+        id: release-check
+        uses: actions/github-script@v7
+        env:
+          RELEASE_TAG: ${{ steps.package.outputs.tag }}
+        with:
+          script: |
+            const tag = process.env.RELEASE_TAG;
+
+            try {
+              const { data } = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag,
+              });
+
+              core.setOutput("id", String(data.id));
+              core.setOutput("exists", "true");
+              core.setOutput("draft", String(data.draft));
+              core.setOutput("skip", String(!data.draft));
+            } catch (error) {
+              if (error.status === 404) {
+                core.setOutput("id", "");
+                core.setOutput("exists", "false");
+                core.setOutput("draft", "false");
+                core.setOutput("skip", "false");
+                return;
+              }
+
+              throw error;
+            }
+
+      - name: Skip already published release
+        if: steps.release-check.outputs.skip == 'true'
+        run: |
+          echo "Release ${{ steps.package.outputs.tag }} is already published."
+          echo "Skipping draft release update."
+
+      - name: Create or update draft release
+        if: steps.release-check.outputs.skip != 'true'
+        uses: actions/github-script@v7
+        env:
+          RELEASE_EXISTS: ${{ steps.release-check.outputs.exists }}
+          RELEASE_ID: ${{ steps.release-check.outputs.id }}
+          RELEASE_TAG: ${{ steps.package.outputs.tag }}
+          RELEASE_TITLE: ${{ steps.package.outputs.title }}
+        with:
+          script: |
+            const fs = require("node:fs");
+            const body = fs.readFileSync("release-notes.md", "utf8");
+            const tag = process.env.RELEASE_TAG;
+            const title = process.env.RELEASE_TITLE;
+            const exists = process.env.RELEASE_EXISTS === "true";
+            const releaseId = process.env.RELEASE_ID;
+
+            if (exists && releaseId) {
+              await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: Number(releaseId),
+                tag_name: tag,
+                target_commitish: context.sha,
+                name: title,
+                body,
+                draft: true,
+                prerelease: false,
+              });
+              return;
+            }
+
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              target_commitish: context.sha,
+              name: title,
+              body,
+              draft: true,
+              prerelease: false,
+            });

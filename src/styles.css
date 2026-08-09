@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@source "../src/**/*.{tsx,ts}";
+
+.lfb-root {
+  --lfb-bg: var(--lfb-bg, #ffffff);
+  --lfb-fg: var(--lfb-fg, #18181b);
+  --lfb-border: var(--lfb-border, #e4e4e7);
+  --lfb-muted: var(--lfb-muted, #71717a);
+  --lfb-accent: var(--lfb-accent, #2563eb);
+  color: var(--lfb-fg);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+
+.lfb-root.dark,
+.dark .lfb-root {
+  --lfb-bg: #09090b;
+  --lfb-fg: #fafafa;
+  --lfb-border: #27272a;
+  --lfb-muted: #a1a1aa;
+}
